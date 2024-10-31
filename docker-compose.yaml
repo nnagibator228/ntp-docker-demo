@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  ntp-front1:
+    image: custom/chrony:local
+    container_name: chrony-local1
+    hostname: chrony.local1
+    env_file: .front.env
+    networks:
+      - ntp_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ntp-front2:
+    image: custom/chrony:local
+    container_name: chrony-local2
+    hostname: chrony.local2
+    env_file: .front.env
+    networks:
+      - ntp_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ntp-front3:
+    image: custom/chrony:local
+    container_name: chrony-local3
+    hostname: chrony.local3
+    env_file: .front.env
+    networks:
+      - ntp_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ntp-main:
+    image: custom/chrony:local
+    container_name: chrony-main
+    hostname: chrony.main
+    cap_add:
+    - SYS_TIME
+    env_file: .main.env
+    networks:
+      - ntp_network
+    depends_on:
+      - ntp-front3
+      - ntp-front2
+      - ntp-front1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  ntp_network:
+    driver: bridge
