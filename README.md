@@ -1,6 +1,6 @@
 # NTP система в docker
 
-Данный репозиторий демонстрирует демонстрационный проект, подготовленный в рамках выполнения курсовой работы по предмету "Системное Программное Обеспечение" студентом МФ МГТУ им. Н. Э. Баумана группы К3-56Б Зозулей Артемом
+Данный репозиторий демонстрирует проект, подготовленный в рамках выполнения курсовой работы по предмету "Системное Программное Обеспечение" студентом МФ МГТУ им. Н. Э. Баумана группы К3-56Б Зозулей Артемом
 
 Ниже будет приведена инструкция по работе с демонстрационным проектом
 
@@ -48,8 +48,7 @@ WARN[0000] /home/user404/ntp-docker/docker-compose.yaml: the attribute `version`
  ✔ Network ntp-docker_ntp_network  Created                                                                                                 0.0s 
  ✔ Container chrony-local1         Started                                                                                                 1.2s 
  ✔ Container chrony-local3         Started                                                                                                 1.2s 
- ✔ Container chrony-local2         Started                                                                                                 1.1s 
- ✔ Container chrony-main           Started     
+ ✔ Container chrony-local2         Started                                                                                                
 ```
 
 Скрипт выполняет следующие шаги:
@@ -61,7 +60,6 @@ WARN[0000] /home/user404/ntp-docker/docker-compose.yaml: the attribute `version`
 ```bash
 > docker ps
 CONTAINER ID   IMAGE                 COMMAND          CREATED         STATUS                   PORTS     NAMES
-42667d543569   custom/chrony:local   "/bin/startup"   7 minutes ago   Up 7 minutes (healthy)   123/udp   chrony-main
 90866ca3510b   custom/chrony:local   "/bin/startup"   7 minutes ago   Up 7 minutes (healthy)   123/udp   chrony-local3
 06af3035df87   custom/chrony:local   "/bin/startup"   7 minutes ago   Up 7 minutes (healthy)   123/udp   chrony-local1
 d8fd3be21bd3   custom/chrony:local   "/bin/startup"   7 minutes ago   Up 7 minutes (healthy)   123/udp   chrony-local2
@@ -144,73 +142,32 @@ Leap status     : Norma
 ;; SERVER: 10.255.255.254#53(10.255.255.254) (UDP)
 ```
 
-Обратимся к подобной информации у основного контейнера, который выступает gateway-ем для использования стенда:
+Также можно посмотреть логи одного из этих серверов командой:
 ```bash
-> docker exec chrony-main chronyc sources
-MS Name/IP address         Stratum Poll Reach LastRx Last sample               
-===============================================================================
-^+ chrony-local1.ntp-docker>     4   6   377    26    -49ms[ -339ms] +/-   55ms
-^* chrony-local2.ntp-docker>     4   6   377    25    -75ms[ -365ms] +/-   38ms
-^- chrony-local3.ntp-docker>     4   6   377    22   -137ms[ -137ms] +/-   26ms
-> docker exec chrony-main chronyc sourcestats
-Name/IP Address            NP  NR  Span  Frequency  Freq Skew  Offset  Std Dev
-==============================================================================
-chrony-local1.ntp-docker>   6   3   321  -2984.880   2917.655    -55ms    93ms
-chrony-local2.ntp-docker>   6   3   323  -3247.837   2166.339   -125ms    74ms
-chrony-local3.ntp-docker>   6   3   323  -3073.639   2771.274   -154ms    95ms
->
-> docker exec chrony-main chronyc tracking
-Reference ID    : AC120002 (chrony-local2.ntp-docker_ntp_network)
-Stratum         : 5
-Ref time (UTC)  : Thu Oct 31 22:54:24 2024
-System time     : 0.000034495 seconds fast of NTP time
-Last offset     : -0.290164471 seconds
-RMS offset      : 0.198053524 seconds
-Frequency       : 7242.182 ppm fast
-Residual freq   : -3154.388 ppm
-Skew            : 1105.048 ppm
-Root delay      : 0.049896758 seconds
-Root dispersion : 0.219717875 seconds
-Update interval : 64.6 seconds
-Leap status     : Normal
-```
-По результатам выполенения команд выше можно убедиться в том, что основной контейнер ```chrony-main``` обращается к трем локальным и обладает stratum-ом большим, чем у них.
-
-Также можно посмотреть логи этого сервера командой:
-```bash
-> docker logs -t chrony-main 
-2024-10-31T22:31:34.134814336Z 2024-10-31T22:31:34Z chronyd version 4.6.1 starting (+CMDMON +NTP +REFCLOCK +RTC +PRIVDROP +SCFILTER +SIGND +ASYNCDNS +NTS +SECHASH +IPV6 -DEBUG)
-2024-10-31T22:31:34.135115635Z 2024-10-31T22:31:34Z Could not read valid frequency and skew from driftfile /var/lib/chrony/chrony.drift
-2024-10-31T22:31:34.135125488Z 2024-10-31T22:31:34Z Initial frequency 13747.737 ppm
-2024-10-31T22:31:44.867687789Z 2024-10-31T22:31:44Z Selected source 172.18.0.4 (chrony.local1)
-2024-10-31T22:36:06.149943015Z 2024-10-31T22:36:06Z Selected source 172.18.0.3 (chrony.local3)
-2024-10-31T22:43:37.807462431Z 2024-10-31T22:43:37Z Selected source 172.18.0.2 (chrony.local2)
-2024-10-31T22:43:40.238584139Z 2024-10-31T22:43:40Z Detected falseticker 172.18.0.3 (chrony.local3)
-2024-10-31T22:52:15.350455882Z 2024-10-31T22:52:15Z Selected source 172.18.0.4 (chrony.local1)
-2024-10-31T22:52:17.688273436Z 2024-10-31T22:52:17Z Detected falseticker 172.18.0.4 (chrony.local1)
-2024-10-31T22:52:17.688292851Z 2024-10-31T22:52:17Z Selected source 172.18.0.2 (chrony.local2)
-2024-10-31T22:56:33.646077487Z 2024-10-31T22:56:33Z Selected source 172.18.0.4 (chrony.local1)
+> docker logs -t chrony-local1
+2024-12-08T19:06:14.411818735Z 2024-12-08T19:06:14Z chronyd version 4.6.1 starting (+CMDMON +NTP +REFCLOCK +RTC +PRIVDROP +SCFILTER +SIGND +ASYNCDNS +NTS +SECHASH +IPV6 -DEBUG)
+2024-12-08T19:06:14.412098220Z 2024-12-08T19:06:14Z Could not read valid frequency and skew from driftfile /var/lib/chrony/chrony.drift
+2024-12-08T19:06:14.412107244Z 2024-12-08T19:06:14Z Initial frequency -29.905 ppm
+2024-12-08T19:06:20.702260057Z 2024-12-08T19:06:20Z Selected source 162.159.200.123 (time.cloudflare.com)
 ```
 
 ## Использование стенда как ntp-сервера на хосте
 
-Для начала убедимся, что chrony-сервер внутри контейнера chrony-main доступен с хост-машины. Для этого нам понадобятся следующие пакеты - ```ntpdate```, ```ntp```
+Для начала убедимся, что chrony-сервера внутри контейнерлв доступны с хост-машины. Для этого нам понадобятся следующие пакеты - ```ntpdate```, ```ntp```
 
-Нужно определить IP-адрес контейнера chrony-main в виртуальный docker-bridge-сети. Получаем ее id, а затем определяем IP-адрес нужного контейнера:
+IP-адреса уже заранее указаны в docker-compose конфигурации
+
+Теперь выполним команду, которая совершит запрос к каждому ntp-серверу по IP:
 ```bash
-> docker network ls | grep ntp
-7986b2a49483   ntp-docker_ntp_network   bridge    local
-> export CID="chrony-main" && docker inspect $CID | grep IPAddress | grep -v null| cut -d '"' -f 4
-172.19.0.5
-# IP-адрес будет отличаться
+> for i in {2..4}; do ntpdate -q 172.20.0.$i; done
+server 172.20.0.2, stratum 4, offset -0.002034, delay 0.02570
+ 9 Dec 02:13:14 ntpdate[4079103]: adjust time server 172.20.0.2 offset -0.002034 sec
+server 172.20.0.3, stratum 4, offset +0.000014, delay 0.02571
+ 9 Dec 02:13:15 ntpdate[4079104]: adjust time server 172.20.0.3 offset +0.000014 sec
+server 172.20.0.4, stratum 4, offset -0.002813, delay 0.02571
+ 9 Dec 02:13:15 ntpdate[4079105]: adjust time server 172.20.0.4 offset -0.002813 sec
 ```
-Теперь выполним команду, которая выполнит запрос к данному ntp-серверу по IP:
-```bash
-> ntpdate -q 172.19.0.5
-server 172.19.0.5, stratum 5, offset +0.020142, delay 0.02571
- 1 Nov 02:31:01 ntpdate[55736]: adjust time server 172.19.0.5 offset +0.020142 sec
-```
-Убедившись, что сервер в контейнере отвечает с локальной машины, мы можем установить его для запущенного на хост-машине ntp-сервера. Чтобы узнать, запущен ли он, можно выполнить следующую команду:
+Убедившись, что сервера в контейнерах отвечают с локальной машины, мы можем установить их для запущенного на хост-машине ntp-сервера. Чтобы узнать, запущен ли он, можно выполнить следующую команду:
 ```bash
 > systemctl list-units --type=service | grep ntp && systemctl status ntp
   ntp.service                          loaded active running Network Time Service
@@ -240,28 +197,37 @@ Oct 31 23:25:38 ntp-test2 systemd[1]: Started Network Time Service.
 ```bash
 ...
 # Specify one or more NTP servers.
-pool 172.19.0.5
+server 172.20.0.2 iburst prefer
+server 172.20.0.3 iburst prefer
+server 172.20.0.4 iburst prefer
+
+# Cloudflare NTP server as fallback solution
+server time.cloudflare.com
 
 ...
 ```
+
 После чего перезапускаем сервис и проверяем изменившиеся настройки:
 ```bash
 > systemctl restart ntp
 > ntpq -p
      remote           refid      st t when poll reach   delay   offset  jitter
 ==============================================================================
- 172.19.0.5      .POOL.          16 p    -   64    0    0.000   +0.000   0.000
- 172.19.0.5      172.19.0.2       5 u    3   64    1    0.040   +7.857   0.000
-> date 
-Fri Nov  1 02:41:15 AM MSK 202
+*172.20.0.2      162.159.200.123  4 u  749 1024  377    0.051   +0.573   0.545
++172.20.0.3      162.159.200.123  4 u  790 1024  377    0.052   -0.054   0.807
++172.20.0.4      162.159.200.1    4 u  822 1024  377    0.051   +0.017   0.282
+-time.cloudflare 10.135.8.61      3 u    3 1024  377    6.730   -0.007   2.057
+> date
+Mon Dec  9 02:15:58 AM MSK 2024
 ```
+
+> Стоит отметить, что каждый из запущенных в контейнере NTP-серверов на базе chrony имеет стратум 4, тк использует в качестве вышестоящего сервер провайдера Cloudflare, который предоставляет CDN в многих локациях по всему миру, засчет этого его стратум равен 3, также NTP сервера Cloudflare поддерживают шифрование трафика NTS
 
 ## Использование стенда как ntp-сервера для приложений
 
 Для демонстрации функционала использования стенда как ntp-сервера для приложений было разработано примитивное приложение на Python, которое мы запустим в контейнере внутри одной docker-bridge-сети со стендом, для этого выполним следующую команду находясь в директории склонированного репозитория:
 ```bash
-> cd ntp-user/ && docker build -t custom/ntp-user:local . && docker run --network ntp-docker_ntp_network --name ntp-time
--container custom/ntp-user:local chrony.main --interval 5
+> cd ntp-user/ && docker build -t custom/ntp-user:local . && docker run --network ntp-docker-demo_ntp_network --name ntp-time custom/ntp-user:local 172.20.0.1 --interval 5
 [+] Building 0.9s (10/10) FINISHED                                                                                               docker:default
  => [internal] load build definition from Dockerfile                                                                                       0.0s
  => => transferring dockerfile: 206B                                                                                                       0.0s
@@ -284,17 +250,46 @@ Fri Nov  1 02:41:15 AM MSK 202
  => => exporting manifest list sha256:371f372c4fd5112c98e6b4803785445366cff88d4431853a5c6776dda157337a                                     0.0s
  => => naming to docker.io/custom/ntp-user:local                                                                                           0.0s
  => => unpacking to docker.io/custom/ntp-user:local                                                                                        0.0s
-2024-10-31 23:49:31,799 - INFO - Fetching time from chrony.main every 5 seconds
-2024-10-31 23:49:36,993 - INFO - -----
-2024-10-31 23:49:36,993 - INFO - NTP Time: 2024-10-31 23:49:37.070570
-2024-10-31 23:49:36,993 - INFO - Time difference: 5.183922 seconds
-2024-10-31 23:49:36,994 - INFO - Average time: 2024-10-31 23:49:34.478609
-2024-10-31 23:49:36,994 - INFO - Accuracy: 5.183922 seconds
-2024-10-31 23:49:41,995 - INFO - -----
-2024-10-31 23:49:41,995 - INFO - NTP Time: 2024-10-31 23:49:42.064291
-2024-10-31 23:49:41,995 - INFO - Time difference: 4.993721 seconds
-2024-10-31 23:49:41,995 - INFO - Average time: 2024-10-31 23:49:39.567430
-2024-10-31 23:49:41,995 - INFO - Accuracy: 4.993721 seconds
+2024-12-08 23:31:44,684 - INFO - Fetching time from 172.20.0.1 every 5 seconds
+2024-12-08 23:31:49,688 - INFO - -----
+2024-12-08 23:31:49,688 - INFO - NTP Time: 2024-12-08 23:31:49.688360
+2024-12-08 23:31:49,690 - INFO - Time difference: 5.000779 seconds
+2024-12-08 23:31:49,690 - INFO - Average time: 2024-12-08 23:31:47.187971
+2024-12-08 23:31:49,691 - INFO - Accuracy: 5.000779 seconds
+2024-12-08 23:31:54,691 - INFO - -----
+2024-12-08 23:31:54,692 - INFO - NTP Time: 2024-12-08 23:31:54.691824
+2024-12-08 23:31:54,693 - INFO - Time difference: 5.003464 seconds
+2024-12-08 23:31:54,693 - INFO - Average time: 2024-12-08 23:31:52.190092
+2024-12-08 23:31:54,694 - INFO - Accuracy: 5.003464 seconds
 ...
 ```
-Приложение начнет выводить время и ряд статистических данных, полученные с chrony-сервера chrony.main с заданным интервалом (5 секунд). Тем самым демонстрируется взаимодействие приложений с ntp-серверов внутри Docker-контейнеров.
+Приложение начнет выводить время и ряд статистических данных, полученные с NTP сервера хостовой машины с заданным интервалом (5 секунд). Тем самым демонстрируется взаимодействие приложений с ним внутри Docker-контейнеров.
+
+Если мы посмотрим информацию об одном из наших контейнеров с chronyc используя `docker container inspect`, то получим следующую информацию о сети:
+```bash
+> docker container inspect chrony-local1 | jq '.[0].NetworkSettings.Networks'
+{
+  "ntp-docker-demo_ntp_network": {
+    "IPAMConfig": {
+      "IPv4Address": "172.20.0.2"
+    },
+    "Links": null,
+    "Aliases": [
+      "chrony-local1",
+      "ntp-front1",
+      "887d9a380068",
+      "chrony.local1"
+    ],
+    "NetworkID": "40370636755c4a6984bfe85dc1aef9a1fc742cf1a37eb5864778e4a80bb31b00",
+    "EndpointID": "d1fdf2eba62f4707cf02086106d4ce334a40570531d4743b45e97e6dc1e75df8",
+    "Gateway": "172.20.0.1",
+    "IPAddress": "172.20.0.2",
+    "IPPrefixLen": 29,
+    "IPv6Gateway": "",
+    "GlobalIPv6Address": "",
+    "GlobalIPv6PrefixLen": 0,
+    "MacAddress": "02:42:ac:14:00:02",
+    "DriverOpts": null
+  }
+```
+Как видно, в параметре **Gateway** указан именно тот IP который мы использовали из контейнера для проверки работы локального NTP сервера хоста из контейнера с приложением.
